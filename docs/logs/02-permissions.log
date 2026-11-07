@@ -1,0 +1,55 @@
+=== 02 권한 실습 로그 ===
+
+$ echo "echo script ran" > run.sh && mkdir secret_dir
+
+--- [파일] 변경 전 ---
+$ ls -l run.sh
+-rw-r--r-- 1 student student 16 Nov  7 06:53 run.sh
+
+$ ./run.sh || echo "실행 실패(Permission denied) → x 권한이 없기 때문"
+scripts/lib.sh: line 7: ./run.sh: Permission denied
+실행 실패(Permission denied) → x 권한이 없기 때문
+
+$ chmod 755 run.sh
+
+--- [파일] 755 적용 후 (rwxr-xr-x) ---
+$ ls -l run.sh
+-rwxr-xr-x 1 student student 16 Nov  7 06:53 run.sh
+
+$ ./run.sh
+script ran
+
+$ chmod 644 run.sh
+
+--- [파일] 644 적용 후 (rw-r--r--) : 다시 실행 불가 ---
+$ ls -l run.sh
+-rw-r--r-- 1 student student 16 Nov  7 06:53 run.sh
+
+$ ./run.sh || echo "실행 실패 → 644에는 x가 없다"
+scripts/lib.sh: line 7: ./run.sh: Permission denied
+실행 실패 → 644에는 x가 없다
+
+--- [디렉토리] 변경 전 ---
+$ ls -ld secret_dir
+drwxr-xr-x 2 student student 4096 Nov  7 06:53 secret_dir
+
+$ chmod 700 secret_dir
+
+--- [디렉토리] 700 적용 후 (rwx------) 소유자만 접근 ---
+$ ls -ld secret_dir
+drwx------ 2 student student 4096 Nov  7 06:53 secret_dir
+
+$ chmod u-x secret_dir
+
+--- [디렉토리] 기호 방식 u-x : 소유자 실행(x) 제거 → cd 불가 (root가 아닌 일반 사용자 기준) ---
+$ ls -ld secret_dir
+drw------- 2 student student 4096 Nov  7 06:53 secret_dir
+
+$ cd secret_dir || echo "cd 실패 → 디렉토리는 x 권한이 있어야 들어갈 수 있다"
+scripts/lib.sh: line 7: cd: secret_dir: Permission denied
+cd 실패 → 디렉토리는 x 권한이 있어야 들어갈 수 있다
+
+$ chmod u+x secret_dir && ls -ld secret_dir
+drwx------ 2 student student 4096 Nov  7 06:53 secret_dir
+
+r=4, w=2, x=1 → 7=rwx, 5=r-x, 4=r--, 6=rw-
