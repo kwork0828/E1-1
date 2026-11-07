@@ -1,0 +1,68 @@
+=== 05 커스텀 이미지 빌드와 포트 매핑 ===
+
+$ cat Dockerfile
+# (A) 방식: 웹 서버 베이스 이미지(nginx:alpine) + 정적 콘텐츠/설정만 교체
+FROM nginx:alpine
+LABEL org.opencontainers.image.title="my-custom-nginx"
+# 커스텀 포인트 1: 환경변수 (설정과 코드를 분리하는 습관)
+ENV APP_ENV=dev
+# 커스텀 포인트 2: 기본 nginx 페이지를 우리 정적 사이트로 교체
+COPY site/ /usr/share/nginx/html/
+# 커스텀 포인트 3: 컨테이너 상태 점검(헬스체크)
+HEALTHCHECK --interval=5s --timeout=2s --retries=3 CMD wget -qO- http://localhost/ >/dev/null || exit 1
+EXPOSE 80
+
+$ docker build -t my-web:1.0 . 2>&1 | tail -8
+#7 exporting layers 0.0s done
+#7 exporting manifest sha256:f0fb1da9a6f1e61eed944d77a8867e872557ae083ddd4b49b5d6a0b21a6d03b1 done
+#7 exporting config sha256:b85d92315390c3ea07b68fbd4ae553ff13b105800d1de9140d13eb332d404afc done
+#7 exporting attestation manifest sha256:a10889d4092a22c13109a314df084ba80c7733dc0c21dd6b956a9303369f9ae2 done
+#7 exporting manifest list sha256:cc708f4e8e3992bd3fb697a2c4e35609369278bd74d7c389bc9042dccfda9670 done
+#7 naming to docker.io/library/my-web:1.0 done
+#7 unpacking to docker.io/library/my-web:1.0 0.0s done
+#7 DONE 0.1s
+
+$ docker images my-web
+IMAGE        ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-web:1.0   cc708f4e8e39       93.7MB         26.4MB        
+
+$ docker rm -f my-web-8080 my-web-8081 >/dev/null 2>&1; docker run -d -p 8080:80 --name my-web-8080 my-web:1.0
+d0df8a3489d7054d50ff3eab7b410f1ef7c7aba99bdbab24e39197e348814cdc
+
+$ docker run -d -p 8081:80 --name my-web-8081 my-web:1.0
+8d82154537fffb06304f1a0497ed0a9164ff21814002e55dd8189e986149cd01
+
+$ sleep 4; docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+NAMES         PORTS                  STATUS
+my-web-8081   0.0.0.0:8081->80/tcp   Up 4 seconds (health: starting)
+my-web-8080   0.0.0.0:8080->80/tcp   Up 4 seconds (health: starting)
+
+$ curl -s -i http://localhost:8080 | head -12
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Date: Sat, 07 Nov 2026 07:00:56 GMT
+Content-Type: text/html
+Content-Length: 172
+Last-Modified: Sat, 07 Nov 2026 06:53:53 GMT
+Connection: keep-alive
+ETag: "6aeecb01-ac"
+Accept-Ranges: bytes
+
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>E1-1 Custom Nginx</title></head>
+
+$ curl -s http://localhost:8081
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>E1-1 Custom Nginx</title></head>
+<body><h1>Hello Codyssey</h1><p>custom nginx image v1</p></body></html>
+
+$ docker exec my-web-8080 printenv APP_ENV
+dev
+
+$ docker inspect --format "{{.Config.Labels}}" my-web-8080
+map[maintainer:NGINX Docker Maintainers <docker-maint@nginx.com> org.opencontainers.image.title:my-custom-nginx]
+
+$ docker rm -f my-web-8080 my-web-8081
+my-web-8080
+my-web-8081
+
