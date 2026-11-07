@@ -1,0 +1,75 @@
+=== 04 컨테이너 실행 실습 ===
+
+$ docker run --rm hello-world | head -6
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+
+--- ubuntu 컨테이너 내부에서 간단한 명령 실행 (ls, echo) ---
+$ docker run --rm ubuntu:22.04 bash -c "cat /etc/os-release | head -2; echo hi-from-container; ls /"
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+hi-from-container
+bin
+boot
+dev
+etc
+home
+lib
+lib32
+lib64
+libx32
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+
+--- 종료/유지 차이: 포그라운드 프로세스가 끝나면 컨테이너도 종료(Exited) ---
+$ docker rm -f t-exit t-keep >/dev/null 2>&1; docker run --name t-exit ubuntu:22.04 echo done
+done
+
+$ docker run -d --name t-keep ubuntu:22.04 sleep infinity
+0301377b12a6465a7677aca23fdaa3836126a4a9bf5aedae682cc6fd619cae28
+
+$ docker ps -a --filter name=t- --format "table {{.Names}}\t{{.Status}}\t{{.Command}}"
+NAMES     STATUS                              COMMAND
+t-keep    Up Less than a second               "sleep infinity"
+t-exit    Exited (0) Less than a second ago   "echo done"
+
+--- exec: 이미 실행 중인 컨테이너에 새 프로세스를 추가 (exit 해도 컨테이너는 유지) ---
+$ docker exec t-keep bash -c "echo exec-ok; ps aux | head -5"
+exec-ok
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   2800  1436 ?        Ss   07:00   0:00 sleep infinity
+root           7  0.0  0.0   4372  3092 ?        Ss   07:00   0:00 bash -c echo exec-ok; ps aux | head -5
+root          14  0.0  0.0   7080  2872 ?        R    07:00   0:00 ps aux
+root          15  0.0  0.0   2812  1396 ?        S    07:00   0:00 head -5
+
+$ docker ps --filter name=t-keep --format "table {{.Names}}\t{{.Status}}"
+NAMES     STATUS
+t-keep    Up Less than a second
+
+--- attach: 컨테이너의 메인 프로세스(PID 1) 출력에 붙는다. sleep은 출력이 없어 지켜볼 내용 없음 ---
+$ timeout -s KILL 3 docker attach --no-stdin --sig-proxy=false t-keep || echo "(3초 후 attach 해제, 컨테이너는 계속 실행)"
+scripts/lib.sh: line 7:  1682 Killed                  timeout -s KILL 3 docker attach --no-stdin --sig-proxy=false t-keep
+(3초 후 attach 해제, 컨테이너는 계속 실행)
+
+$ docker ps --filter name=t-keep --format "table {{.Names}}\t{{.Status}}"
+NAMES     STATUS
+t-keep    Up 3 seconds
+
+$ docker rm -f t-exit t-keep
+t-exit
+t-keep
+
