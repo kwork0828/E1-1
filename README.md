@@ -128,6 +128,8 @@ drwxr-xr-x 2 student student 4096 Nov  7 06:53 docs
 ```
 원본: [`docs/logs/01-terminal.log`](docs/logs/01-terminal.log) · 스크립트: [`scripts/01_terminal.sh`](scripts/01_terminal.sh)
 
+![01-terminal 실행 화면](docs/screenshots/01-terminal.png)
+
 ## 5. 권한 실습
 
 **권한 표기 읽는 법:** `r=4(읽기) w=2(쓰기) x=1(실행)` 를 소유자/그룹/기타 순서로 더한 숫자입니다.
@@ -199,6 +201,8 @@ drwx------ 2 student student 4096 Nov  7 06:53 secret_dir
 r=4, w=2, x=1 → 7=rwx, 5=r-x, 4=r--, 6=rw-
 ```
 원본: [`docs/logs/02-permissions.log`](docs/logs/02-permissions.log)
+
+![02-permissions 실행 화면](docs/screenshots/02-permissions.png)
 
 ## 6. Docker 설치/점검과 기본 운영
 
@@ -273,6 +277,8 @@ $ docker rm demo-nginx
 demo-nginx
 ```
 원본: [`docs/logs/03-docker-basic.log`](docs/logs/03-docker-basic.log)
+
+![03-docker-basic 실행 화면](docs/screenshots/03-docker-basic.png)
 
 ## 7. 컨테이너 실행 실습
 
@@ -365,6 +371,8 @@ t-keep
 ```
 원본: [`docs/logs/04-container-practice.log`](docs/logs/04-container-practice.log)
 
+![04-container-practice 실행 화면](docs/screenshots/04-container-practice.png)
+
 ## 8. Dockerfile 커스텀 이미지 + 포트 매핑
 
 **선택한 방식:** (A) 웹 서버 베이스 이미지(`nginx:alpine`) + 정적 콘텐츠/설정 교체.
@@ -451,6 +459,8 @@ my-web-8081
 ```
 원본: [`docs/logs/05-custom-image-port.log`](docs/logs/05-custom-image-port.log) · [`Dockerfile`](Dockerfile) · [`site/index.html`](site/index.html)
 
+![05-custom-image-port 실행 화면](docs/screenshots/05-custom-image-port.png)
+
 ## 9. 바인드 마운트
 
 **개념:** 호스트의 폴더를 컨테이너 안에 *그대로 연결*합니다(공유 폴더). 호스트에서 파일을 고치면 컨테이너 재시작 없이 즉시 반영됩니다. 개발 중 코드 수정에 적합합니다.
@@ -479,6 +489,8 @@ $ docker rm -f bind-web
 bind-web
 ```
 원본: [`docs/logs/06-bind-mount.log`](docs/logs/06-bind-mount.log)
+
+![06-bind-mount 실행 화면](docs/screenshots/06-bind-mount.png)
 
 ## 10. Docker 볼륨 영속성
 
@@ -540,6 +552,8 @@ mydata
 ```
 원본: [`docs/logs/07-volume.log`](docs/logs/07-volume.log)
 
+![07-volume 실행 화면](docs/screenshots/07-volume.png)
+
 ## 11. Git 설정
 
 **Git vs GitHub:** Git은 내 컴퓨터에서 변경 이력을 관리하는 **로컬 버전 관리 도구**, GitHub는 그 저장소를 올려 두고 협업하는 **원격 플랫폼**입니다.
@@ -584,6 +598,8 @@ $ git config --global --get init.defaultBranch
 main
 ```
 원본: [`docs/logs/08-git.log`](docs/logs/08-git.log)
+
+![08-git 실행 화면](docs/screenshots/08-git.png)
 
 ## 12. 사용자 PC에서 직접 할 일 (미완료 항목)
 
