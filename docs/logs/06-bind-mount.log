@@ -1,0 +1,20 @@
+=== 06 바인드 마운트 반영 증명 ===
+
+$ docker rm -f bind-web >/dev/null 2>&1; docker run -d --name bind-web -p 8090:80 -v /tmp/bindsite:/usr/share/nginx/html:ro nginx:alpine
+0ac3f6cf039e5274ed162dd076ca388acc0d5209443d330033f5cd48e5a7a313
+
+$ sleep 2; curl -s http://localhost:8090
+<h1>BEFORE</h1>
+
+--- 호스트에서 파일 수정 (컨테이너는 재시작하지 않음) ---
+$ echo "<h1>AFTER (host edited)</h1>" > /tmp/bindsite/index.html
+
+$ curl -s http://localhost:8090
+<h1>AFTER (host edited)</h1>
+
+$ docker inspect --format "{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}} (rw={{.RW}}){{end}}" bind-web
+bind /tmp/bindsite -> /usr/share/nginx/html (rw=false)
+
+$ docker rm -f bind-web
+bind-web
+
