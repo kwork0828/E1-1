@@ -1,0 +1,44 @@
+=== 07 Docker 볼륨 영속성 검증 ===
+
+$ docker rm -f vol-test vol-test2 >/dev/null 2>&1; docker volume rm mydata >/dev/null 2>&1; docker volume create mydata
+mydata
+
+$ docker volume ls --filter name=mydata
+DRIVER    VOLUME NAME
+local     mydata
+
+$ docker run -d --name vol-test -v mydata:/data ubuntu:22.04 sleep infinity
+fe287c0becdeb8dc49442fc1c4cd2e75a3b480f7fa8396f9bd49074593841606
+
+$ docker exec vol-test bash -lc "echo hi > /data/hello.txt && cat /data/hello.txt"
+hi
+
+--- 컨테이너 삭제 ---
+$ docker rm -f vol-test
+vol-test
+
+$ docker ps -a --filter name=vol-test
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+--- 새 컨테이너에 같은 볼륨 연결 후 데이터 확인 ---
+$ docker run -d --name vol-test2 -v mydata:/data ubuntu:22.04 sleep infinity
+1f120d212b045490e62c302835c107ac2c58a0879f566690000e19b15f083c0b
+
+$ docker exec vol-test2 bash -lc "cat /data/hello.txt"
+hi
+
+$ docker volume inspect mydata --format "{{.Name}} {{.Driver}} {{.Mountpoint}}"
+mydata local /var/lib/docker/volumes/mydata/_data
+
+--- 대조군: 볼륨 없이 쓴 데이터는 컨테이너와 함께 사라진다 ---
+$ docker run -d --name no-vol ubuntu:22.04 sleep infinity; docker exec no-vol bash -lc "echo temp > /tmp/x.txt && cat /tmp/x.txt"; docker rm -f no-vol; docker run --rm ubuntu:22.04 bash -lc "cat /tmp/x.txt || echo \"파일 없음 - 컨테이너와 함께 삭제됨\""
+73113a010f89eff92a0948d68845826a0a1cc8ae85ba10d386c5e1cb2eefea00
+temp
+no-vol
+cat: /tmp/x.txt: No such file or directory
+파일 없음 - 컨테이너와 함께 삭제됨
+
+$ docker rm -f vol-test2; docker volume rm mydata
+vol-test2
+mydata
+
